@@ -68,8 +68,13 @@ describe('strategy', function () {
     });
 
     it('it waits until a transport is available', function (next) {
-      var readyState = require('readystate')
+      var readyState = require('transport-layer/exports').readystate
         , ready = false;
+
+      //
+      // Reset the readyState so we can trigger a change event.
+      //
+      readyState.readyState = 0;
 
       strategy.select({
         readable: true

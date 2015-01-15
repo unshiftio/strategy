@@ -10,13 +10,11 @@
     "coverage": "istanbul cover ./node_modules/.bin/_mocha -- test.js",
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- test.js"
   },
-  "dependencies": {
-    "readystate": "0.0.x"
-  },
   "devDependencies": {
     "assume": "0.0.x",
     "istanbul": "0.3.x",
     "mocha": "2.1.x",
+    "negotiation": "0.0.x",
     "pre-commit": "0.0.x",
     "transport-layer": "0.0.x"
   },
