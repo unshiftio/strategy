@@ -42,7 +42,18 @@ describe('strategy', function () {
     assume(strategy.transports[0].name).equals('foo');
   });
 
+  describe('Attempt', function () {
+    it('uses the provided name of the transport', function () {
+      var named = TL.extend({ name: 'named' })
+        , attempt = new Strategy.Attempt(undefined, named);
+
+      assume(attempt.name).equals('named');
+    });
+  });
+
   describe('#select', function () {
+    var readyState = require('transport-layer/exports').readystate;
+
     beforeEach(function () {
       strategy.push('readable', r);
       strategy.push('writable', w);
@@ -68,8 +79,7 @@ describe('strategy', function () {
     });
 
     it('it waits until a transport is available', function (next) {
-      var readyState = require('transport-layer/exports').readystate
-        , ready = false;
+      var ready = false;
 
       //
       // Reset the readyState so we can trigger a change event.
@@ -95,6 +105,79 @@ describe('strategy', function () {
       }, 100);
 
       assume(ready).is.false();
+    });
+
+    it('can filter out transports based on name', function (next) {
+      strategy.select({
+        not: { readable: true },
+        readable: true
+      }, function (err, attempt) {
+        if (err) return next(err);
+
+        assume(attempt.transport).equals(rw);
+
+        next();
+      });
+    });
+
+    it('can find writable transports', function (next) {
+      strategy.select({
+        writable: true
+      }, function (err, attempt) {
+        if (err) return next(err);
+
+        assume(attempt.transport).equals(w);
+
+        next();
+      });
+    });
+
+    it('can find crossdomain transports', function (next) {
+      strategy.select({
+        crossdomain: true
+      }, function (err, attempt) {
+        if (err) return next(err);
+
+        assume(attempt.transport).equals(xd);
+
+        next();
+      });
+    });
+
+    it('can filter based upon id', function (next) {
+      strategy.select({
+        id: 3
+      }, function (err, attempt)  {
+        if (err) return next(err);
+
+        assume(attempt.transport).equals(rw);
+
+        next();
+      });
+    });
+
+    it('calls the callback even if there are no matches', function (next) {
+      strategy.select({
+        id: 10 // non-existing id
+      }, function (err, attempt) {
+        if (err) return next(err);
+
+        assume(attempt).is.undefined();
+        next();
+      });
+    });
+
+    it('selects an available transport', function (next) {
+      strategy.select({
+        available: true,
+        readable: true
+      }, function (err, attempt) {
+        if (err) return next(err);
+
+        assume(attempt.transport.available()).is.true();
+
+        next();
+      });
     });
   });
 

@@ -118,7 +118,7 @@ Strategy.prototype.select = function select(config, fn) {
   //  for
   //
   if ('available' in config) {
-    for (; i < transports.length; i++) {
+    for (i = 0; i < transports.length; i++) {
       if (config.available === transports[i].transport.available()) {
         strategy.transport = transports[i].id;
         return fn(undefined, transports[i]), strategy;
