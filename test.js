@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 describe('strategy', function () {
   'use strict';
 
