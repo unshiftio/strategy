@@ -25,16 +25,45 @@ function Attempt(name, transport, options) {
  * @api public
  */
 function Strategy(transports, options) {
-  if (!(this instanceof Strategy)) return new Strategy(transports, options);
+  var strategy = this;
 
-  this.transports = [];
-  this.transport = 0;
+  if (!(strategy instanceof Strategy)) return new Strategy(transports, options);
+  if (Object.prototype.toString.call(transports) !== '[object Array]') {
+    options = transports;
+    transports = [];
+  }
+
+  strategy.transports = [];     // List of active transports.
+  strategy.transport = 0;       // Current selected transport id.
+  strategy.length = 0;          // Amount of transports available.
+  strategy.id = 0;              // ID generation pool.
 
   for (var i = 0; i < transports.length; i++) {
-    transports[i].id = i;
-    this.transports.push(transports);
+    strategy.push(transports[i]);
   }
 }
+
+/**
+ * Add a new strategy to the internal transports selection.
+ *
+ * @param {String} name Name of the transport.
+ * @param {TransportLayer} transport Constructor of a TransportLayer.
+ * @param {Object} options Options for the transport & strategy instructions.
+ * @returns {Strategy}
+ * @api public
+ */
+Strategy.prototype.push = function push(name, transport, options) {
+  var strategy = this
+    , attempt;
+
+  if (!(name instanceof Attempt)) attempt = new Attempt(name, transport, options);
+  else attempt = name;
+
+  if (!attempt.id) attempt.id = strategy.id++;
+  strategy.length = strategy.transports.push(attempt);
+
+  return strategy;
+};
 
 /**
  * Options:
@@ -44,40 +73,68 @@ function Strategy(transports, options) {
  * - available: The transport should be.
  * - readable: The transport should be readable.
  * - writable: The transport should be readable.
+ * - id: The id we should start at.
  *
- * @param {Object} options
- * @param {Function} fn
+ * @param {Object} config Configuration for selecting transports.
+ * @param {Function} fn Completion callback.
  * @returns {Strategy}
  * @api public
  */
-Strategy.prototype.select = function select(options, fn) {
+Strategy.prototype.select = function select(config, fn) {
   //
   //   I: Start with some preliminary filtering to ensure that all get all
   //      we only have transports that satisfy the given set of requirements.
   //      Availability doesn't matter yet.
   //
-  var transports = this.transports.filter(function filter(attempt) {
-    var transport = attempt.transport;
+  var transports = []
+    , strategy = this
+    , transport
+    , attempt
+    , i = 0;
+
+  for (0; i < strategy.transports.length; i++) {
+    attempt = strategy.transports[i];
+    transport = attempt.transport;
 
     if (
-         'crossdomain' in options && options.crossdomain !== transport.crossdomain
-      || 'writable' in options && options.writable !== transport.writable
-      || 'readable' in options && options.readable !== transport.readable
-      || 'not' in options && attempt.name in options.not
+         'crossdomain' in config && config.crossdomain !== transport.crossdomain
+      || 'writable' in config && config.writable !== transport.writable
+      || 'readable' in config && config.readable !== transport.readable
+      || 'not' in config && attempt.name in config.not
+      || 'id' in config && attempt.id < config.id
       || !transport.supported
-    ) return false;
+    ) continue;
 
-    return true;
-  });
+    transports.push(attempt);
+  }
 
   //
-  //  II: Now that we have a set transports we can start.
+  // Bail out early if we have nothing to upgrade to any more.
   //
-  if (transports.length)
+  if (!transports.length) return fn(), strategy;
 
-  //|| 'available' in options && options.available !== transport.available()
+  //
+  //  II: Now that we have a set transports we can figure out we need to search
+  //  for
+  //
+  if ('available' in config) {
+    for (; i < transports.length; i++) {
+      if (config.available === transports[i].transport.available()) {
+        strategy.transport = transports[i].id;
+        return fn(undefined, transports[i]), strategy;
+      }
+    }
 
-  return this;
+    fn();
+  } else {
+    attempt = transports.shift();
+    strategy.transport = attempt.id;
+    attempt.transport.available(function ready() {
+      fn(undefined, attempt);
+    });
+  }
+
+  return strategy;
 };
 
 /**
