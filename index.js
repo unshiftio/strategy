@@ -18,6 +18,10 @@ function Policy(name, Transport, options) {
     name = undefined;
   }
 
+  if ('function' !== typeof Transport) {
+    throw new Error('Transport should be a constructor.');
+  }
+
   policy.name = (name || Transport.prototype.name).toLowerCase();
   policy.Transport = Transport;
   policy.options = options || {};

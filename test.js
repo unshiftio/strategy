@@ -36,7 +36,7 @@ describe('strategy', function () {
   it('can add transports through the constructor', function () {
     strategy.destroy();
     strategy = new Strategy([
-      new Strategy.Policy('foo', {})
+      new Strategy.Policy('foo', function () {})
     ]);
 
     assume(strategy).length(1);
@@ -50,6 +50,12 @@ describe('strategy', function () {
 
       assume(policy.name).equals('named');
       assume(policy.options).deep.equals({ foo: 'bar' });
+    });
+
+    it('throws when Transport is not a function', function () {
+      assume(function () {
+        return new Strategy.Policy('foo');
+      }).throws(/transport/i);
     });
   });
 
@@ -203,7 +209,7 @@ describe('strategy', function () {
     });
 
     it('returns it self', function () {
-      assume(strategy.push('foo', {})).equals(strategy);
+      assume(strategy.push('foo', function () {})).equals(strategy);
     });
 
     it('saves the newly added transport and increments the length', function () {
@@ -212,7 +218,7 @@ describe('strategy', function () {
 
       assume(strategy).has.length(0);
 
-      strategy.push('foo', {});
+      strategy.push('foo', function () {});
       assume(strategy).has.length(1);
 
       assume(strategy.transports[0]).is.instanceOf(Strategy.Policy);
@@ -220,7 +226,7 @@ describe('strategy', function () {
     });
 
     it('accepts Policy instances', function () {
-      var policy = new Strategy.Policy('foo', 1);
+      var policy = new Strategy.Policy('foo', function () {});
 
       strategy.push(policy);
 
@@ -233,18 +239,18 @@ describe('strategy', function () {
     it('increments ids', function () {
       assume(strategy.id).equals(0);
 
-      strategy.push('foo', {});
+      strategy.push('foo', function () {});
 
       assume(strategy.id).equals(1);
       assume(strategy.transports[0].id).equals(0);
 
-      strategy.push('foo', {});
+      strategy.push('foo', function () {});
       assume(strategy.id).equals(2);
       assume(strategy.transports[1].id).equals(1);
     });
 
     it('does not override the id', function () {
-      var policy = new Strategy.Policy('foo', 1);
+      var policy = new Strategy.Policy('foo', function () {});
       policy.id = 'foo';
 
       strategy.push(policy);
