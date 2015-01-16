@@ -181,6 +181,20 @@ describe('strategy', function () {
         next();
       });
     });
+
+    it('calls the callback with no results if nothing is available', function (next) {
+      readyState.readyState = 0;
+
+      strategy.select({
+        available: true,
+      }, function (err, policy) {
+        if (err) return next(err);
+
+        assume(policy).is.a('undefined');
+
+        next();
+      });
+    });
   });
 
   describe('#push', function () {
@@ -239,6 +253,20 @@ describe('strategy', function () {
       assume(strategy.transports[0]).is.instanceOf(Strategy.Policy);
       assume(strategy.transports[0].name).equals('foo');
       assume(strategy.transports[0].id).equals('foo');
+    });
+  });
+
+  describe('#destroy', function () {
+    it('returns a boolean', function () {
+      assume(strategy.destroy()).is.true();
+    });
+
+    it('returns false on second destroy call', function () {
+      assume(strategy.destroy()).is.true();
+      assume(strategy.destroy()).is.false();
+      assume(strategy.destroy()).is.false();
+      assume(strategy.destroy()).is.false();
+      assume(strategy.destroy()).is.false();
     });
   });
 });
