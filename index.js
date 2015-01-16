@@ -1,15 +1,21 @@
 'use strict';
 
 /**
- * Representation of one single connection attempt.
+ * Representation of one single transport policy.
  *
  * @constructor
- * @param {String} name Name of the attempt.
+ * @param {String} name Name of the policy
  * @param {TransportLayer} transport Constructor of a TransportLayer.
  * @param {Object} options Options for the transport & strategy instructions.
  * @api public
  */
-function Attempt(name, transport, options) {
+function Policy(name, transport, options) {
+  if ('string' !== typeof name) {
+    options = transport;
+    transport = name;
+    name = undefined;
+  }
+
   this.name = name || transport.prototype.name;
   this.transport = transport;
   this.options = options || {};
@@ -54,13 +60,13 @@ function Strategy(transports, options) {
  */
 Strategy.prototype.push = function push(name, transport, options) {
   var strategy = this
-    , attempt;
+    , policy;
 
-  if (!(name instanceof Attempt)) attempt = new Attempt(name, transport, options);
-  else attempt = name;
+  if (!(name instanceof Policy)) policy = new Policy(name, transport, options);
+  else policy = name;
 
-  if (!attempt.id) attempt.id = strategy.id++;
-  strategy.length = strategy.transports.push(attempt);
+  if (!policy.id) policy.id = strategy.id++;
+  strategy.length = strategy.transports.push(policy);
 
   return strategy;
 };
@@ -89,23 +95,23 @@ Strategy.prototype.select = function select(config, fn) {
   var transports = []
     , strategy = this
     , transport
-    , attempt
+    , policy
     , i = 0;
 
   for (0; i < strategy.transports.length; i++) {
-    attempt = strategy.transports[i];
-    transport = attempt.transport;
+    policy = strategy.transports[i];
+    transport = policy.transport;
 
     if (
          'crossdomain' in config && config.crossdomain !== transport.crossdomain
       || 'writable' in config && config.writable !== transport.writable
       || 'readable' in config && config.readable !== transport.readable
-      || 'not' in config && attempt.name in config.not
-      || 'id' in config && attempt.id < config.id
+      || 'not' in config && policy.name in config.not
+      || 'id' in config && policy.id < config.id
       || !transport.supported
     ) continue;
 
-    transports.push(attempt);
+    transports.push(policy);
   }
 
   //
@@ -127,10 +133,10 @@ Strategy.prototype.select = function select(config, fn) {
 
     fn();
   } else {
-    attempt = transports.shift();
-    strategy.transport = attempt.id;
-    attempt.transport.available(function ready() {
-      fn(undefined, attempt);
+    policy = transports.shift();
+    strategy.transport = policy.id;
+    policy.transport.available(function ready() {
+      fn(undefined, policy);
     });
   }
 
@@ -153,5 +159,5 @@ Strategy.prototype.destroy = function destroy() {
 //
 // Expose the strategy.
 //
-Strategy.Attempt = Attempt;
+Strategy.Policy = Policy;
 module.exports = Strategy;

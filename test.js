@@ -29,26 +29,27 @@ describe('strategy', function () {
     assume(strategy.push).is.a('function');
   });
 
-  it('exposes the Attempt constructor', function () {
-    assume(Strategy.Attempt).is.a('function');
+  it('exposes the Strategy constructor', function () {
+    assume(Strategy.Policy).is.a('function');
   });
 
   it('can add transports through the constructor', function () {
     strategy.destroy();
     strategy = new Strategy([
-      new Strategy.Attempt('foo', {})
+      new Strategy.Policy('foo', {})
     ]);
 
     assume(strategy).length(1);
     assume(strategy.transports[0].name).equals('foo');
   });
 
-  describe('Attempt', function () {
+  describe('Policy', function () {
     it('uses the provided name of the transport', function () {
       var named = TL.extend({ name: 'named' })
-        , attempt = new Strategy.Attempt(undefined, named);
+        , policy = new Strategy.Policy(named, { foo: 'bar' });
 
-      assume(attempt.name).equals('named');
+      assume(policy.name).equals('named');
+      assume(policy.options).deep.equals({ foo: 'bar' });
     });
   });
 
@@ -68,12 +69,12 @@ describe('strategy', function () {
       , rw = TL.extend({}, { supported: true, readable: true, writable: true });
 
     it('selects only readable transports', function (next) {
-      strategy.select({ readable: true }, function (err, attempt) {
+      strategy.select({ readable: true }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt).is.instanceOf(Strategy.Attempt);
-        assume(strategy.transport).equals(attempt.id);
-        assume(attempt.transport).equals(r);
+        assume(policy).is.instanceOf(Strategy.Policy);
+        assume(strategy.transport).equals(policy.id);
+        assume(policy.transport).equals(r);
 
         next();
       });
@@ -89,12 +90,12 @@ describe('strategy', function () {
 
       strategy.select({
         readable: true
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt).is.instanceOf(Strategy.Attempt);
-        assume(strategy.transport).equals(attempt.id);
-        assume(attempt.transport).equals(r);
+        assume(policy).is.instanceOf(Strategy.Policy);
+        assume(strategy.transport).equals(policy.id);
+        assume(policy.transport).equals(r);
         ready = true;
       });
 
@@ -112,10 +113,10 @@ describe('strategy', function () {
       strategy.select({
         not: { readable: true },
         readable: true
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt.transport).equals(rw);
+        assume(policy.transport).equals(rw);
 
         next();
       });
@@ -124,10 +125,10 @@ describe('strategy', function () {
     it('can find writable transports', function (next) {
       strategy.select({
         writable: true
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt.transport).equals(w);
+        assume(policy.transport).equals(w);
 
         next();
       });
@@ -136,10 +137,10 @@ describe('strategy', function () {
     it('can find crossdomain transports', function (next) {
       strategy.select({
         crossdomain: true
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt.transport).equals(xd);
+        assume(policy.transport).equals(xd);
 
         next();
       });
@@ -148,10 +149,10 @@ describe('strategy', function () {
     it('can filter based upon id', function (next) {
       strategy.select({
         id: 3
-      }, function (err, attempt)  {
+      }, function (err, policy)  {
         if (err) return next(err);
 
-        assume(attempt.transport).equals(rw);
+        assume(policy.transport).equals(rw);
 
         next();
       });
@@ -160,10 +161,10 @@ describe('strategy', function () {
     it('calls the callback even if there are no matches', function (next) {
       strategy.select({
         id: 10 // non-existing id
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt).is.undefined();
+        assume(policy).is.undefined();
         next();
       });
     });
@@ -172,10 +173,10 @@ describe('strategy', function () {
       strategy.select({
         available: true,
         readable: true
-      }, function (err, attempt) {
+      }, function (err, policy) {
         if (err) return next(err);
 
-        assume(attempt.transport.available()).is.true();
+        assume(policy.transport.available()).is.true();
 
         next();
       });
@@ -200,17 +201,17 @@ describe('strategy', function () {
       strategy.push('foo', {});
       assume(strategy).has.length(1);
 
-      assume(strategy.transports[0]).is.instanceOf(Strategy.Attempt);
+      assume(strategy.transports[0]).is.instanceOf(Strategy.Policy);
       assume(strategy.transports[0].name).equals('foo');
     });
 
-    it('accepts Attempt instances', function () {
-      var attempt = new Strategy.Attempt('foo', 1);
+    it('accepts Policy instances', function () {
+      var policy = new Strategy.Policy('foo', 1);
 
-      strategy.push(attempt);
+      strategy.push(policy);
 
       assume(strategy).has.length(1);
-      assume(strategy.transports[0]).is.instanceOf(Strategy.Attempt);
+      assume(strategy.transports[0]).is.instanceOf(Strategy.Policy);
       assume(strategy.transports[0].name).equals('foo');
       assume(strategy.transports[0].id).equals(0);
     });
@@ -229,13 +230,13 @@ describe('strategy', function () {
     });
 
     it('does not override the id', function () {
-      var attempt = new Strategy.Attempt('foo', 1);
-      attempt.id = 'foo';
+      var policy = new Strategy.Policy('foo', 1);
+      policy.id = 'foo';
 
-      strategy.push(attempt);
+      strategy.push(policy);
 
       assume(strategy).has.length(1);
-      assume(strategy.transports[0]).is.instanceOf(Strategy.Attempt);
+      assume(strategy.transports[0]).is.instanceOf(Strategy.Policy);
       assume(strategy.transports[0].name).equals('foo');
       assume(strategy.transports[0].id).equals('foo');
     });
