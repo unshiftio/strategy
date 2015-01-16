@@ -74,7 +74,7 @@ describe('strategy', function () {
 
         assume(policy).is.instanceOf(Strategy.Policy);
         assume(strategy.transport).equals(policy.id);
-        assume(policy.transport).equals(r);
+        assume(policy.Transport).equals(r);
 
         next();
       });
@@ -95,7 +95,7 @@ describe('strategy', function () {
 
         assume(policy).is.instanceOf(Strategy.Policy);
         assume(strategy.transport).equals(policy.id);
-        assume(policy.transport).equals(r);
+        assume(policy.Transport).equals(r);
         ready = true;
       });
 
@@ -116,7 +116,7 @@ describe('strategy', function () {
       }, function (err, policy) {
         if (err) return next(err);
 
-        assume(policy.transport).equals(rw);
+        assume(policy.Transport).equals(rw);
 
         next();
       });
@@ -128,7 +128,7 @@ describe('strategy', function () {
       }, function (err, policy) {
         if (err) return next(err);
 
-        assume(policy.transport).equals(w);
+        assume(policy.Transport).equals(w);
 
         next();
       });
@@ -140,7 +140,7 @@ describe('strategy', function () {
       }, function (err, policy) {
         if (err) return next(err);
 
-        assume(policy.transport).equals(xd);
+        assume(policy.Transport).equals(xd);
 
         next();
       });
@@ -152,7 +152,7 @@ describe('strategy', function () {
       }, function (err, policy)  {
         if (err) return next(err);
 
-        assume(policy.transport).equals(rw);
+        assume(policy.Transport).equals(rw);
 
         next();
       });
@@ -176,7 +176,7 @@ describe('strategy', function () {
       }, function (err, policy) {
         if (err) return next(err);
 
-        assume(policy.transport.available()).is.true();
+        assume(policy.Transport.available()).is.true();
 
         next();
       });

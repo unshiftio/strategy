@@ -5,21 +5,21 @@
  *
  * @constructor
  * @param {String} name Name of the policy
- * @param {TransportLayer} transport Constructor of a TransportLayer.
+ * @param {TransportLayer} Transport Constructor of a TransportLayer.
  * @param {Object} options Options for the transport & strategy instructions.
  * @api public
  */
-function Policy(name, transport, options) {
+function Policy(name, Transport, options) {
   var policy = this;
 
   if ('string' !== typeof name) {
-    options = transport;
-    transport = name;
+    options = Transport;
+    Transport = name;
     name = undefined;
   }
 
-  policy.name = (name || transport.prototype.name).toLowerCase();
-  policy.transport = transport;
+  policy.name = (name || Transport.prototype.name).toLowerCase();
+  policy.Transport = Transport;
   policy.options = options || {};
   policy.id = 0;
 }
@@ -55,16 +55,16 @@ function Strategy(transports, options) {
  * Add a new strategy to the internal transports selection.
  *
  * @param {String} name Name of the transport.
- * @param {TransportLayer} transport Constructor of a TransportLayer.
+ * @param {TransportLayer} Transport Constructor of a TransportLayer.
  * @param {Object} options Options for the transport & strategy instructions.
  * @returns {Strategy}
  * @api public
  */
-Strategy.prototype.push = function push(name, transport, options) {
+Strategy.prototype.push = function push(name, Transport, options) {
   var strategy = this
     , policy;
 
-  if (!(name instanceof Policy)) policy = new Policy(name, transport, options);
+  if (!(name instanceof Policy)) policy = new Policy(name, Transport, options);
   else policy = name;
 
   if (!policy.id) policy.id = strategy.id++;
@@ -98,21 +98,21 @@ Strategy.prototype.select = function select(config, fn) {
   //
   var transports = []
     , strategy = this
-    , transport
+    , Transport
     , policy
     , i = 0;
 
   for (0; i < strategy.transports.length; i++) {
     policy = strategy.transports[i];
-    transport = policy.transport;
+    Transport = policy.Transport;
 
     if (
-         'crossdomain' in config && config.crossdomain !== transport.crossdomain
-      || 'writable' in config && config.writable !== transport.writable
-      || 'readable' in config && config.readable !== transport.readable
+         'crossdomain' in config && config.crossdomain !== Transport.crossdomain
+      || 'writable' in config && config.writable !== Transport.writable
+      || 'readable' in config && config.readable !== Transport.readable
       || 'not' in config && policy.name in config.not
       || 'id' in config && policy.id < config.id
-      || !transport.supported
+      || !Transport.supported
     ) continue;
 
     transports.push(policy);
@@ -129,7 +129,7 @@ Strategy.prototype.select = function select(config, fn) {
   //
   if ('available' in config) {
     for (i = 0; i < transports.length; i++) {
-      if (config.available === transports[i].transport.available()) {
+      if (config.available === transports[i].Transport.available()) {
         strategy.transport = transports[i].id;
         return fn(undefined, transports[i]), strategy;
       }
@@ -139,7 +139,7 @@ Strategy.prototype.select = function select(config, fn) {
   } else {
     policy = transports.shift();
     strategy.transport = policy.id;
-    policy.transport.available(function ready() {
+    policy.Transport.available(function ready() {
       fn(undefined, policy);
     });
   }
