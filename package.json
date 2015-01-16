@@ -11,7 +11,7 @@
     "test-travis": "istanbul cover node_modules/.bin/_mocha --report lcovonly -- test.js"
   },
   "devDependencies": {
-    "assume": "0.0.x",
+    "assume": "1.0.x",
     "istanbul": "0.3.x",
     "mocha": "2.1.x",
     "negotiation": "0.0.x",
