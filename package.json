@@ -1,6 +1,6 @@
 {
   "name": "strategy",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Real-time transport selection strategy",
   "main": "index.js",
   "scripts": {
@@ -32,5 +32,6 @@
   "bugs": {
     "url": "https://github.com/unshiftio/strategy/issues"
   },
-  "homepage": "https://github.com/unshiftio/strategy"
+  "homepage": "https://github.com/unshiftio/strategy",
+  "pre-commit": ["coverage", "100%"]
 }
