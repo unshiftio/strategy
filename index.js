@@ -10,16 +10,18 @@
  * @api public
  */
 function Policy(name, transport, options) {
+  var policy = this;
+
   if ('string' !== typeof name) {
     options = transport;
     transport = name;
     name = undefined;
   }
 
-  this.name = name || transport.prototype.name;
-  this.transport = transport;
-  this.options = options || {};
-  this.id = 0;
+  policy.name = (name || transport.prototype.name).toLowerCase();
+  policy.transport = transport;
+  policy.options = options || {};
+  policy.id = 0;
 }
 
 /**
@@ -72,6 +74,8 @@ Strategy.prototype.push = function push(name, transport, options) {
 };
 
 /**
+ * Select a new policy from the strategy.
+ *
  * Options:
  *
  * - crossdomain: The transport should work cross domain.
@@ -150,9 +154,11 @@ Strategy.prototype.select = function select(config, fn) {
  * @api public
  */
 Strategy.prototype.destroy = function destroy() {
-  if (!this.transports) return false;
+  var strategy = this;
 
-  this.transports = this.transport = null;
+  if (!strategy.transports) return false;
+
+  strategy.transports = strategy.transport = strategy.length = strategy.id = null;
   return true;
 };
 
