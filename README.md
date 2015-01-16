@@ -65,7 +65,7 @@ attempt = new Policy(WebSockets, { /* options * /});
 
 // or:
 
-attempt = new Policy('WebSockets', WebSockets, { /* options * /});
+attempt = new Policy('WebSockets', WebSockets, { /* options */});
 ```
 
 Now that you've got some transports created you can assign them supply them to
